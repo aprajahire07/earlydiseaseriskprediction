@@ -4,83 +4,71 @@ import { HomeSection } from './components/HomeSection';
 import { PredictionForm } from './components/PredictionForm';
 import { AboutSection } from './components/AboutSection';
 import { FutureScopeSection } from './components/FutureScopeSection';
-import { ProjectInfoSection } from './components/ProjectInfoSection';
 import { Footer } from './components/Footer';
 
 /**
  * ==============================================================================
- * B.Tech College Mini Project: Early Disease Risk Prediction System
- * ------------------------------------------------------------------------------
- * Main Application Component (App.tsx)
- * 
- * Sections:
- * 1. Home Page: Project title, introduction, Check Risk button, student project note
- * 2. Risk Prediction Form: Age, Gender, BMI, BP, Smoking, Alcohol, Activity, Family History, Blood Sugar
- * 3. About Project: Problem statement, Objective, Future Machine Learning workflow
- * 4. Future Scope: ML integration, Accuracy improvements, Recommendations, DB, Flask backend
- * 5. Project Info: Viva Q&A, Team and Guide details
+ * College Mini Project: Early Disease Risk Prediction using Lifestyle and Medical History
+ * Frontend Demo (Phase-1)
  * ==============================================================================
  */
 
 export default function App() {
-  // Navigation active tab state: 'home' | 'predict' | 'about' | 'future' | 'team'
+  // Navigation active tab: 'home' | 'form' | 'about' | 'future'
   const [activeTab, setActiveTab] = useState<string>('home');
 
-  // Helper to jump to Risk Prediction Form
-  const handleGoToPrediction = () => {
-    setActiveTab('predict');
+  // Helper function to switch to Prediction Form
+  const handleCheckRisk = () => {
+    setActiveTab('form');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Helper to jump to About Project section
-  const handleGoToAbout = () => {
+  // Helper function to switch to About section
+  const handleReadAbout = () => {
     setActiveTab('about');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] text-gray-800 flex flex-col font-sans">
-      {/* 1. Header & Navigation Bar */}
+    <div className="min-h-screen bg-[#f3f4f6] text-gray-800 flex flex-col font-sans">
+      {/* 1. Simple Navigation Bar */}
       <Navbar activeTab={activeTab} setActiveTab={setActiveTab} />
 
-      {/* 2. Main Content Container */}
-      <main className="flex-1 max-w-6xl w-full mx-auto px-4 py-6 md:py-8">
+      {/* 2. Main Page Content */}
+      <main className="flex-1 max-w-5xl w-full mx-auto px-4 py-6">
         
-        {/* Academic Breadcrumb / Sub-header */}
-        <div className="mb-6 flex flex-wrap items-center justify-between text-xs text-gray-500 border-b border-gray-200 pb-2">
-          <div>
-            <span>Active Section: </span>
-            <span className="font-semibold text-blue-700 uppercase tracking-wide">
+        {/* Section Indicator */}
+        <div className="mb-4 text-xs text-gray-500 border-b border-gray-300 pb-1.5 flex justify-between items-center">
+          <span>
+            Current Page:{' '}
+            <strong className="text-blue-700">
               {activeTab === 'home' && '1. Home Page'}
-              {activeTab === 'predict' && '2. Risk Prediction Form'}
+              {activeTab === 'form' && '2. Risk Prediction Form'}
               {activeTab === 'about' && '3. About Project'}
               {activeTab === 'future' && '4. Future Scope'}
-              {activeTab === 'team' && '5. Project Info & Viva'}
-            </span>
-          </div>
-          <div className="text-gray-400 text-[11px]">
-            Status: Frontend Demo (No ML/Backend Connected)
-          </div>
+            </strong>
+          </span>
+          <span className="text-[11px] text-gray-500">
+            Frontend Prototype Version
+          </span>
         </div>
 
-        {/* Dynamic Section Rendering */}
+        {/* Dynamic Section Display */}
         {activeTab === 'home' && (
           <HomeSection
-            onCheckRiskClick={handleGoToPrediction}
-            onExploreAboutClick={handleGoToAbout}
+            onCheckRiskClick={handleCheckRisk}
+            onAboutClick={handleReadAbout}
           />
         )}
 
-        {activeTab === 'predict' && <PredictionForm />}
+        {activeTab === 'form' && <PredictionForm />}
 
         {activeTab === 'about' && <AboutSection />}
 
         {activeTab === 'future' && <FutureScopeSection />}
-
-        {activeTab === 'team' && <ProjectInfoSection />}
       </main>
 
-      {/* 3. Footer */}
+      {/* 3. Simple Footer */}
       <Footer />
     </div>
   );

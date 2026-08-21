@@ -1,41 +1,50 @@
 import React, { useState } from 'react';
-import { RiskFormData, initialFormData, sampleStudentData } from '../types';
-import { 
-  FileText, 
-  RotateCcw, 
-  Sparkles, 
-  Info, 
-  CheckCircle2, 
-  AlertTriangle, 
-  Calculator,
-  X
-} from 'lucide-react';
 
+// Interface defining the lifestyle and medical history inputs
+interface FormDataState {
+  age: string;
+  gender: string;
+  bmi: string;
+  bloodPressure: string;
+  smokingHabit: string;
+  alcoholConsumption: string;
+  physicalActivity: string;
+  familyMedicalHistory: string[];
+  bloodSugarLevel: string;
+}
+
+const initialFormValues: FormDataState = {
+  age: '',
+  gender: '',
+  bmi: '',
+  bloodPressure: '',
+  smokingHabit: '',
+  alcoholConsumption: '',
+  physicalActivity: '',
+  familyMedicalHistory: [],
+  bloodSugarLevel: '',
+};
+
+// 2. Risk Prediction Form Component
 export const PredictionForm: React.FC = () => {
-  // State for storing form inputs
-  const [formData, setFormData] = useState<RiskFormData>(initialFormData);
-  
-  // State for BMI Calculator modal/helper
-  const [showBmiCalc, setShowBmiCalc] = useState<boolean>(false);
-  const [calcHeight, setCalcHeight] = useState<string>('170');
-  const [calcWeight, setCalcWeight] = useState<string>('68');
-  
-  // State for showing the prediction message/modal
-  const [showResultModal, setShowResultModal] = useState<boolean>(false);
-  const [formErrors, setFormErrors] = useState<string[]>([]);
+  // State for form inputs
+  const [formData, setFormData] = useState<FormDataState>(initialFormValues);
+  // State to show the prediction message
+  const [showMessage, setShowMessage] = useState<boolean>(false);
+  // State for simple form validation error message
+  const [errorMessage, setErrorMessage] = useState<string>('');
 
-  // List of family medical history options
-  const familyHistoryOptions = [
-    'Diabetes (Type 1 / Type 2)',
-    'Hypertension (High BP)',
-    'Cardiovascular / Heart Disease',
+  // List of medical history options for checkboxes
+  const familyHistoryList = [
+    'Diabetes',
+    'High Blood Pressure (Hypertension)',
+    'Heart Disease',
     'High Cholesterol',
-    'Stroke',
-    'No Known Family History',
+    'None',
   ];
 
-  // Handle standard input changes
-  const handleInputChange = (
+  // Handle standard input and select changes
+  const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
@@ -45,484 +54,333 @@ export const PredictionForm: React.FC = () => {
     }));
   };
 
-  // Handle checkbox changes for Family Medical History
-  const handleFamilyHistoryChange = (option: string) => {
+  // Handle checkbox selection for family medical history
+  const handleCheckboxChange = (disease: string) => {
     setFormData((prev) => {
-      let updated: string[];
-      if (option === 'No Known Family History') {
-        // If "No Known Family History" is selected, clear other options
-        updated = prev.familyMedicalHistory.includes(option) ? [] : [option];
+      let updatedList = [...prev.familyMedicalHistory];
+      if (disease === 'None') {
+        updatedList = updatedList.includes('None') ? [] : ['None'];
       } else {
-        // Remove "No Known Family History" if a specific disease is checked
-        const withoutNone = prev.familyMedicalHistory.filter(
-          (item) => item !== 'No Known Family History'
-        );
-        if (withoutNone.includes(option)) {
-          updated = withoutNone.filter((item) => item !== option);
+        updatedList = updatedList.filter((item) => item !== 'None');
+        if (updatedList.includes(disease)) {
+          updatedList = updatedList.filter((item) => item !== disease);
         } else {
-          updated = [...withoutNone, option];
+          updatedList.push(disease);
         }
       }
-      return { ...prev, familyMedicalHistory: updated };
+      return { ...prev, familyMedicalHistory: updatedList };
     });
   };
 
-  // Helper function to calculate BMI: weight(kg) / [height(m)]^2
-  const calculateBMIHelper = () => {
-    const h = parseFloat(calcHeight);
-    const w = parseFloat(calcWeight);
-    if (h > 0 && w > 0) {
-      const heightInMeters = h / 100;
-      const bmiValue = (w / (heightInMeters * heightInMeters)).toFixed(1);
-      setFormData((prev) => ({
-        ...prev,
-        bmi: bmiValue,
-      }));
-      setShowBmiCalc(false);
-    }
-  };
-
-  // Reset form to initial empty values
-  const handleReset = () => {
-    setFormData(initialFormData);
-    setFormErrors([]);
-    setShowResultModal(false);
-  };
-
-  // Load sample student dataset for quick viva presentation
-  const handleLoadSample = () => {
-    setFormData(sampleStudentData);
-    setFormErrors([]);
-  };
-
-  // Handle form submission (Phase 1 Frontend Prototype)
+  // Form submission handler
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const errors: string[] = [];
 
-    // Basic form validation check
-    if (!formData.age || parseInt(formData.age) <= 0 || parseInt(formData.age) > 120) {
-      errors.push('Please enter a valid Age (between 1 and 120).');
-    }
-    if (!formData.gender) {
-      errors.push('Please select Gender.');
-    }
-    if (!formData.bmi) {
-      errors.push('Please enter or calculate your BMI.');
-    }
-    if (!formData.bloodPressure) {
-      errors.push('Please select Blood Pressure level.');
-    }
-    if (!formData.smokingHabit) {
-      errors.push('Please select Smoking Habit.');
-    }
-    if (!formData.alcoholConsumption) {
-      errors.push('Please select Alcohol Consumption.');
-    }
-    if (!formData.physicalActivity) {
-      errors.push('Please select Physical Activity level.');
-    }
-
-    if (errors.length > 0) {
-      setFormErrors(errors);
-      window.scrollTo({ top: 100, behavior: 'smooth' });
+    // Basic validation
+    if (!formData.age || !formData.gender || !formData.bmi || !formData.bloodPressure || 
+        !formData.smokingHabit || !formData.alcoholConsumption || !formData.physicalActivity) {
+      setErrorMessage('Please fill in all the required fields marked with *');
+      setShowMessage(false);
       return;
     }
 
-    setFormErrors([]);
-    setShowResultModal(true);
+    setErrorMessage('');
+    setShowMessage(true);
+  };
+
+  // Reset form handler
+  const handleReset = () => {
+    setFormData(initialFormValues);
+    setShowMessage(false);
+    setErrorMessage('');
+  };
+
+  // Sample data filler for teacher demonstration
+  const handleFillSample = () => {
+    setFormData({
+      age: '42',
+      gender: 'Male',
+      bmi: '26.8',
+      bloodPressure: '135/85 mmHg (Elevated)',
+      smokingHabit: 'Occasional',
+      alcoholConsumption: 'Occasional',
+      physicalActivity: 'Moderate',
+      familyMedicalHistory: ['Diabetes', 'High Blood Pressure (Hypertension)'],
+      bloodSugarLevel: '105 mg/dL',
+    });
+    setErrorMessage('');
+    setShowMessage(false);
   };
 
   return (
-    <div className="space-y-6">
-      {/* Form Header Card */}
-      <div className="bg-white border border-gray-300 rounded-lg p-5 shadow-xs">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-200 pb-4 mb-4">
-          <div>
-            <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-              <FileText className="w-5 h-5 text-blue-700" />
-              <span>Lifestyle & Medical History Input Form</span>
-            </h2>
-            <p className="text-xs sm:text-sm text-gray-600 mt-1">
-              Please enter the patient or user parameters below for early disease risk evaluation.
-            </p>
-          </div>
-
-          {/* Quick Viva Helper Button */}
-          <button
-            type="button"
-            id="btn-load-sample"
-            onClick={handleLoadSample}
-            className="inline-flex items-center gap-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-300 text-xs font-medium px-3 py-1.5 rounded transition-colors cursor-pointer self-start sm:self-auto"
-            title="Click to pre-fill the form with sample data for demonstration"
-          >
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Load Sample Data</span>
-          </button>
+    <div className="bg-white border border-gray-300 rounded p-5 sm:p-6 space-y-6">
+      {/* Form Header */}
+      <div className="border-b border-gray-200 pb-3 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+        <div>
+          <h2 className="text-xl font-bold text-gray-900">
+            Disease Risk Prediction Form
+          </h2>
+          <p className="text-xs sm:text-sm text-gray-600">
+            Enter patient details to assess early disease risk based on lifestyle and medical factors.
+          </p>
         </div>
-
-        {/* Validation Errors Notice */}
-        {formErrors.length > 0 && (
-          <div className="mb-5 bg-red-50 border border-red-300 text-red-800 p-3 rounded text-sm">
-            <div className="flex items-center gap-2 font-semibold mb-1">
-              <AlertTriangle className="w-4 h-4 text-red-600" />
-              <span>Please fill in the required fields:</span>
-            </div>
-            <ul className="list-disc list-inside text-xs space-y-0.5 ml-1">
-              {formErrors.map((err, idx) => (
-                <li key={idx}>{err}</li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        {/* Main Form */}
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            
-            {/* 1. Age */}
-            <div className="bg-gray-50/70 p-4 rounded border border-gray-200">
-              <label htmlFor="input-age" className="block text-sm font-semibold text-gray-800 mb-1">
-                1. Age <span className="text-red-500">*</span>
-              </label>
-              <div className="flex items-center gap-2">
-                <input
-                  type="number"
-                  id="input-age"
-                  name="age"
-                  min="1"
-                  max="120"
-                  placeholder="e.g. 45"
-                  value={formData.age}
-                  onChange={handleInputChange}
-                  className="w-full bg-white border border-gray-300 rounded px-3 py-2 text-sm text-gray-800 focus:outline-none focus:border-blue-600"
-                  required
-                />
-                <span className="text-xs text-gray-500 font-medium whitespace-nowrap">years</span>
-              </div>
-              <p className="text-[11px] text-gray-500 mt-1">Target range: 18 - 85 years</p>
-            </div>
-
-            {/* 2. Gender */}
-            <div className="bg-gray-50/70 p-4 rounded border border-gray-200">
-              <label className="block text-sm font-semibold text-gray-800 mb-2">
-                2. Gender <span className="text-red-500">*</span>
-              </label>
-              <div className="flex items-center gap-5 pt-1">
-                {['Male', 'Female', 'Other'].map((g) => (
-                  <label key={g} className="flex items-center gap-1.5 text-sm text-gray-700 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="gender"
-                      value={g}
-                      checked={formData.gender === g}
-                      onChange={handleInputChange}
-                      className="text-blue-600 focus:ring-blue-500 cursor-pointer"
-                    />
-                    <span>{g}</span>
-                  </label>
-                ))}
-              </div>
-              <p className="text-[11px] text-gray-500 mt-2">Biological gender category</p>
-            </div>
-
-            {/* 3. BMI (Body Mass Index) */}
-            <div className="bg-gray-50/70 p-4 rounded border border-gray-200">
-              <div className="flex items-center justify-between mb-1">
-                <label htmlFor="input-bmi" className="block text-sm font-semibold text-gray-800">
-                  3. BMI (Body Mass Index) <span className="text-red-500">*</span>
-                </label>
-                <button
-                  type="button"
-                  onClick={() => setShowBmiCalc(!showBmiCalc)}
-                  className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1 font-medium cursor-pointer"
-                >
-                  <Calculator className="w-3.5 h-3.5" />
-                  <span>{showBmiCalc ? 'Close Calculator' : 'Calculate BMI'}</span>
-                </button>
-              </div>
-
-              {/* BMI Helper Tool Accordion */}
-              {showBmiCalc && (
-                <div className="bg-blue-50 border border-blue-200 p-3 rounded mb-2 text-xs text-gray-800">
-                  <p className="font-semibold text-blue-900 mb-1.5">Quick BMI Calculator Tool</p>
-                  <div className="grid grid-cols-2 gap-2 mb-2">
-                    <div>
-                      <label className="block text-[11px] text-gray-600 mb-0.5">Height (cm)</label>
-                      <input
-                        type="number"
-                        value={calcHeight}
-                        onChange={(e) => setCalcHeight(e.target.value)}
-                        className="w-full bg-white border border-gray-300 rounded px-2 py-1 text-xs"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[11px] text-gray-600 mb-0.5">Weight (kg)</label>
-                      <input
-                        type="number"
-                        value={calcWeight}
-                        onChange={(e) => setCalcWeight(e.target.value)}
-                        className="w-full bg-white border border-gray-300 rounded px-2 py-1 text-xs"
-                      />
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={calculateBMIHelper}
-                    className="bg-blue-700 text-white px-3 py-1 rounded text-xs hover:bg-blue-800 cursor-pointer font-medium"
-                  >
-                    Apply Calculated BMI
-                  </button>
-                </div>
-              )}
-
-              <input
-                type="number"
-                step="0.1"
-                id="input-bmi"
-                name="bmi"
-                placeholder="e.g. 24.5 (Normal: 18.5 - 24.9)"
-                value={formData.bmi}
-                onChange={handleInputChange}
-                className="w-full bg-white border border-gray-300 rounded px-3 py-2 text-sm text-gray-800 focus:outline-none focus:border-blue-600"
-                required
-              />
-              <p className="text-[11px] text-gray-500 mt-1">Normal: 18.5–24.9 | Overweight: 25–29.9 | Obese: 30+</p>
-            </div>
-
-            {/* 4. Blood Pressure */}
-            <div className="bg-gray-50/70 p-4 rounded border border-gray-200">
-              <label htmlFor="select-bp" className="block text-sm font-semibold text-gray-800 mb-1">
-                4. Blood Pressure <span className="text-red-500">*</span>
-              </label>
-              <select
-                id="select-bp"
-                name="bloodPressure"
-                value={formData.bloodPressure}
-                onChange={handleInputChange}
-                className="w-full bg-white border border-gray-300 rounded px-3 py-2 text-sm text-gray-800 focus:outline-none focus:border-blue-600"
-                required
-              >
-                <option value="">-- Select Blood Pressure Category --</option>
-                <option value="Normal (< 120/80 mmHg)">Normal (&lt; 120/80 mmHg)</option>
-                <option value="120-129 / <80 (Elevated)">Elevated (120-129 / &lt;80 mmHg)</option>
-                <option value="130-139 / 80-89 (Stage 1 Hypertension)">Stage 1 Hypertension (130-139 / 80-89 mmHg)</option>
-                <option value=">= 140 / >= 90 (Stage 2 Hypertension)">Stage 2 Hypertension (&ge; 140 / &ge; 90 mmHg)</option>
-                <option value="Low Blood Pressure (< 90/60 mmHg)">Low Blood Pressure (&lt; 90/60 mmHg)</option>
-              </select>
-              <p className="text-[11px] text-gray-500 mt-1">Resting arterial blood pressure</p>
-            </div>
-
-            {/* 5. Smoking Habit */}
-            <div className="bg-gray-50/70 p-4 rounded border border-gray-200">
-              <label className="block text-sm font-semibold text-gray-800 mb-2">
-                5. Smoking Habit <span className="text-red-500">*</span>
-              </label>
-              <div className="flex flex-wrap gap-4 pt-1">
-                {['Non-Smoker', 'Occasional', 'Regular'].map((smk) => (
-                  <label key={smk} className="flex items-center gap-1.5 text-sm text-gray-700 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="smokingHabit"
-                      value={smk}
-                      checked={formData.smokingHabit === smk}
-                      onChange={handleInputChange}
-                      className="text-blue-600 focus:ring-blue-500 cursor-pointer"
-                    />
-                    <span>{smk}</span>
-                  </label>
-                ))}
-              </div>
-              <p className="text-[11px] text-gray-500 mt-2">Tobacco or cigarette usage frequency</p>
-            </div>
-
-            {/* 6. Alcohol Consumption */}
-            <div className="bg-gray-50/70 p-4 rounded border border-gray-200">
-              <label className="block text-sm font-semibold text-gray-800 mb-2">
-                6. Alcohol Consumption <span className="text-red-500">*</span>
-              </label>
-              <div className="flex flex-wrap gap-4 pt-1">
-                {['None', 'Occasional', 'Regular'].map((alc) => (
-                  <label key={alc} className="flex items-center gap-1.5 text-sm text-gray-700 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="alcoholConsumption"
-                      value={alc}
-                      checked={formData.alcoholConsumption === alc}
-                      onChange={handleInputChange}
-                      className="text-blue-600 focus:ring-blue-500 cursor-pointer"
-                    />
-                    <span>{alc}</span>
-                  </label>
-                ))}
-              </div>
-              <p className="text-[11px] text-gray-500 mt-2">Alcohol consumption pattern</p>
-            </div>
-
-            {/* 7. Physical Activity */}
-            <div className="bg-gray-50/70 p-4 rounded border border-gray-200">
-              <label htmlFor="select-activity" className="block text-sm font-semibold text-gray-800 mb-1">
-                7. Physical Activity <span className="text-red-500">*</span>
-              </label>
-              <select
-                id="select-activity"
-                name="physicalActivity"
-                value={formData.physicalActivity}
-                onChange={handleInputChange}
-                className="w-full bg-white border border-gray-300 rounded px-3 py-2 text-sm text-gray-800 focus:outline-none focus:border-blue-600"
-                required
-              >
-                <option value="">-- Select Activity Level --</option>
-                <option value="Sedentary (Low)">Sedentary (Little or no exercise / desk job)</option>
-                <option value="Moderate (3-4 days/week)">Moderate (Light workout / walk 3-4 days a week)</option>
-                <option value="Active (Daily)">Active (Intense workout / daily sports)</option>
-              </select>
-              <p className="text-[11px] text-gray-500 mt-1">Weekly exercise and mobility pattern</p>
-            </div>
-
-            {/* 8. Blood Sugar Level (Optional) */}
-            <div className="bg-gray-50/70 p-4 rounded border border-gray-200">
-              <label htmlFor="input-sugar" className="block text-sm font-semibold text-gray-800 mb-1">
-                8. Blood Sugar Level <span className="text-gray-400 font-normal">(Optional)</span>
-              </label>
-              <input
-                type="text"
-                id="input-sugar"
-                name="bloodSugarLevel"
-                placeholder="e.g. 95 mg/dL or Normal / Fasting"
-                value={formData.bloodSugarLevel}
-                onChange={handleInputChange}
-                className="w-full bg-white border border-gray-300 rounded px-3 py-2 text-sm text-gray-800 focus:outline-none focus:border-blue-600"
-              />
-              <p className="text-[11px] text-gray-500 mt-1">Fasting normal range: 70–99 mg/dL</p>
-            </div>
-
-          </div>
-
-          {/* 9. Family Medical History */}
-          <div className="bg-gray-50/70 p-4 rounded border border-gray-200">
-            <label className="block text-sm font-semibold text-gray-800 mb-1">
-              9. Family Medical History <span className="text-gray-500 font-normal text-xs">(Select all that apply)</span>
-            </label>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 mt-2">
-              {familyHistoryOptions.map((opt) => (
-                <label
-                  key={opt}
-                  className="flex items-start gap-2 text-xs sm:text-sm text-gray-700 bg-white p-2.5 rounded border border-gray-200 hover:bg-gray-50 cursor-pointer"
-                >
-                  <input
-                    type="checkbox"
-                    checked={formData.familyMedicalHistory.includes(opt)}
-                    onChange={() => handleFamilyHistoryChange(opt)}
-                    className="mt-0.5 text-blue-600 rounded focus:ring-blue-500 cursor-pointer"
-                  />
-                  <span>{opt}</span>
-                </label>
-              ))}
-            </div>
-            <p className="text-[11px] text-gray-500 mt-2">
-              Hereditary health indicators among first-degree relatives (parents, siblings).
-            </p>
-          </div>
-
-          {/* Form Action Buttons */}
-          <div className="flex flex-wrap items-center gap-3 pt-2">
-            <button
-              type="submit"
-              id="btn-predict-risk-submit"
-              className="bg-[#1e40af] hover:bg-[#1d4ed8] text-white font-semibold px-6 py-2.5 rounded transition-colors shadow-xs cursor-pointer text-sm flex items-center gap-2"
-            >
-              <CheckCircle2 className="w-4 h-4" />
-              <span>Predict Risk</span>
-            </button>
-
-            <button
-              type="button"
-              id="btn-reset-form"
-              onClick={handleReset}
-              className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium px-4 py-2.5 rounded border border-gray-300 transition-colors cursor-pointer text-sm flex items-center gap-1.5"
-            >
-              <RotateCcw className="w-4 h-4" />
-              <span>Reset Form</span>
-            </button>
-          </div>
-        </form>
+        <button
+          type="button"
+          onClick={handleFillSample}
+          className="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 border border-gray-300 px-2.5 py-1.5 rounded cursor-pointer"
+          title="Fills the form with sample inputs for viva presentation"
+        >
+          Load Sample Values
+        </button>
       </div>
 
-      {/* RESULT MODAL / STUDENT PROTOTYPE NOTICE */}
-      {showResultModal && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg border border-gray-300 max-w-xl w-full p-6 shadow-lg relative animate-in fade-in zoom-in-95 duration-150">
-            {/* Close Button */}
-            <button
-              type="button"
-              onClick={() => setShowResultModal(false)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 p-1 cursor-pointer"
+      {/* Error Message Box */}
+      {errorMessage && (
+        <div className="bg-red-50 border border-red-300 text-red-700 text-xs sm:text-sm p-3 rounded">
+          {errorMessage}
+        </div>
+      )}
+
+      {/* Main Input Form */}
+      <form onSubmit={handleSubmit} className="space-y-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          
+          {/* 1. Age */}
+          <div className="border border-gray-200 p-3 rounded bg-gray-50">
+            <label htmlFor="age-input" className="block text-sm font-semibold text-gray-800 mb-1">
+              Age <span className="text-red-600">*</span>
+            </label>
+            <input
+              type="number"
+              id="age-input"
+              name="age"
+              min="1"
+              max="120"
+              placeholder="e.g. 45"
+              value={formData.age}
+              onChange={handleChange}
+              className="w-full bg-white border border-gray-300 rounded px-3 py-1.5 text-sm focus:outline-none focus:border-blue-600"
+              required
+            />
+            <span className="text-[11px] text-gray-500">In years (e.g. 18 - 80)</span>
+          </div>
+
+          {/* 2. Gender */}
+          <div className="border border-gray-200 p-3 rounded bg-gray-50">
+            <label className="block text-sm font-semibold text-gray-800 mb-1">
+              Gender <span className="text-red-600">*</span>
+            </label>
+            <div className="flex items-center gap-4 mt-2 text-sm text-gray-800">
+              {['Male', 'Female', 'Other'].map((item) => (
+                <label key={item} className="flex items-center gap-1.5 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="gender"
+                    value={item}
+                    checked={formData.gender === item}
+                    onChange={handleChange}
+                    className="cursor-pointer"
+                  />
+                  <span>{item}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* 3. BMI */}
+          <div className="border border-gray-200 p-3 rounded bg-gray-50">
+            <label htmlFor="bmi-input" className="block text-sm font-semibold text-gray-800 mb-1">
+              BMI (Body Mass Index) <span className="text-red-600">*</span>
+            </label>
+            <input
+              type="number"
+              step="0.1"
+              id="bmi-input"
+              name="bmi"
+              placeholder="e.g. 24.5"
+              value={formData.bmi}
+              onChange={handleChange}
+              className="w-full bg-white border border-gray-300 rounded px-3 py-1.5 text-sm focus:outline-none focus:border-blue-600"
+              required
+            />
+            <span className="text-[11px] text-gray-500">Formula: Weight(kg) / [Height(m)]²</span>
+          </div>
+
+          {/* 4. Blood Pressure */}
+          <div className="border border-gray-200 p-3 rounded bg-gray-50">
+            <label htmlFor="bp-select" className="block text-sm font-semibold text-gray-800 mb-1">
+              Blood Pressure <span className="text-red-600">*</span>
+            </label>
+            <select
+              id="bp-select"
+              name="bloodPressure"
+              value={formData.bloodPressure}
+              onChange={handleChange}
+              className="w-full bg-white border border-gray-300 rounded px-3 py-1.5 text-sm focus:outline-none focus:border-blue-600"
+              required
             >
-              <X className="w-5 h-5" />
-            </button>
+              <option value="">-- Select Blood Pressure --</option>
+              <option value="Normal (< 120/80 mmHg)">Normal (&lt; 120/80 mmHg)</option>
+              <option value="120-129 / <80 mmHg (Elevated)">Elevated (120-129 / &lt;80 mmHg)</option>
+              <option value="130-139 / 80-89 mmHg (Stage 1 Hypertension)">Stage 1 Hypertension (130-139 / 80-89 mmHg)</option>
+              <option value=">= 140 / >= 90 mmHg (Stage 2 Hypertension)">Stage 2 Hypertension (&ge; 140 / &ge; 90 mmHg)</option>
+              <option value="Low Blood Pressure (< 90/60 mmHg)">Low Blood Pressure (&lt; 90/60 mmHg)</option>
+            </select>
+          </div>
 
-            {/* Modal Header */}
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center shrink-0">
-                <Info className="w-6 h-6 text-blue-700" />
-              </div>
-              <div>
-                <h3 className="font-bold text-gray-900 text-lg">
-                  Phase-1 Project Demonstration
-                </h3>
-                <p className="text-xs text-gray-500">
-                  Early Disease Risk Prediction System
-                </p>
-              </div>
+          {/* 5. Smoking Habit */}
+          <div className="border border-gray-200 p-3 rounded bg-gray-50">
+            <label className="block text-sm font-semibold text-gray-800 mb-1">
+              Smoking Habit <span className="text-red-600">*</span>
+            </label>
+            <div className="flex flex-wrap items-center gap-4 mt-2 text-sm text-gray-800">
+              {['Non-Smoker', 'Occasional', 'Regular'].map((item) => (
+                <label key={item} className="flex items-center gap-1.5 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="smokingHabit"
+                    value={item}
+                    checked={formData.smokingHabit === item}
+                    onChange={handleChange}
+                    className="cursor-pointer"
+                  />
+                  <span>{item}</span>
+                </label>
+              ))}
             </div>
+          </div>
 
-            {/* The Mandatory User-Requested Text */}
-            <div className="bg-blue-50 border-2 border-blue-300 p-4 rounded-md mb-5">
-              <p className="text-sm font-semibold text-blue-900 leading-relaxed text-center">
-                &ldquo;Prediction feature will be connected with the Machine Learning model in the next phase.&rdquo;
+          {/* 6. Alcohol Consumption */}
+          <div className="border border-gray-200 p-3 rounded bg-gray-50">
+            <label className="block text-sm font-semibold text-gray-800 mb-1">
+              Alcohol Consumption <span className="text-red-600">*</span>
+            </label>
+            <div className="flex flex-wrap items-center gap-4 mt-2 text-sm text-gray-800">
+              {['None', 'Occasional', 'Regular'].map((item) => (
+                <label key={item} className="flex items-center gap-1.5 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="alcoholConsumption"
+                    value={item}
+                    checked={formData.alcoholConsumption === item}
+                    onChange={handleChange}
+                    className="cursor-pointer"
+                  />
+                  <span>{item}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* 7. Physical Activity */}
+          <div className="border border-gray-200 p-3 rounded bg-gray-50">
+            <label htmlFor="activity-select" className="block text-sm font-semibold text-gray-800 mb-1">
+              Physical Activity <span className="text-red-600">*</span>
+            </label>
+            <select
+              id="activity-select"
+              name="physicalActivity"
+              value={formData.physicalActivity}
+              onChange={handleChange}
+              className="w-full bg-white border border-gray-300 rounded px-3 py-1.5 text-sm focus:outline-none focus:border-blue-600"
+              required
+            >
+              <option value="">-- Select Activity Level --</option>
+              <option value="Sedentary (Little or no exercise)">Sedentary (Little or no exercise)</option>
+              <option value="Moderate (3-4 days per week)">Moderate (3-4 days per week)</option>
+              <option value="Active (Daily exercise/sports)">Active (Daily exercise/sports)</option>
+            </select>
+          </div>
+
+          {/* 8. Blood Sugar Level (Optional) */}
+          <div className="border border-gray-200 p-3 rounded bg-gray-50">
+            <label htmlFor="sugar-input" className="block text-sm font-semibold text-gray-800 mb-1">
+              Blood Sugar Level <span className="text-gray-500 font-normal text-xs">(Optional)</span>
+            </label>
+            <input
+              type="text"
+              id="sugar-input"
+              name="bloodSugarLevel"
+              placeholder="e.g. 95 mg/dL or Normal"
+              value={formData.bloodSugarLevel}
+              onChange={handleChange}
+              className="w-full bg-white border border-gray-300 rounded px-3 py-1.5 text-sm focus:outline-none focus:border-blue-600"
+            />
+            <span className="text-[11px] text-gray-500">Fasting normal range: 70 - 99 mg/dL</span>
+          </div>
+
+        </div>
+
+        {/* 9. Family Medical History */}
+        <div className="border border-gray-200 p-3 rounded bg-gray-50">
+          <label className="block text-sm font-semibold text-gray-800 mb-2">
+            Family Medical History <span className="text-gray-500 font-normal text-xs">(Select applicable options)</span>
+          </label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+            {familyHistoryList.map((disease) => (
+              <label key={disease} className="flex items-center gap-2 bg-white border border-gray-200 p-2 rounded text-xs sm:text-sm text-gray-700 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={formData.familyMedicalHistory.includes(disease)}
+                  onChange={() => handleCheckboxChange(disease)}
+                  className="cursor-pointer"
+                />
+                <span>{disease}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex flex-wrap items-center gap-3 pt-2">
+          <button
+            type="submit"
+            id="btn-predict-risk"
+            className="bg-[#2563eb] hover:bg-[#1d4ed8] text-white font-medium px-6 py-2 rounded text-sm border border-blue-700 cursor-pointer"
+          >
+            Predict Risk
+          </button>
+
+          <button
+            type="button"
+            id="btn-reset"
+            onClick={handleReset}
+            className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium px-4 py-2 rounded text-sm border border-gray-300 cursor-pointer"
+          >
+            Reset
+          </button>
+        </div>
+      </form>
+
+      {/* Prediction Output Notification (As explicitly requested by user) */}
+      {showMessage && (
+        <div className="mt-4 border-2 border-blue-400 bg-blue-50 p-4 rounded text-gray-800 space-y-3">
+          <div className="font-bold text-blue-900 text-sm sm:text-base">
+            System Message:
+          </div>
+          
+          <p className="text-sm font-medium text-gray-900 bg-white border border-blue-200 p-3 rounded">
+            &ldquo;Prediction feature will be connected with the Machine Learning model in the next phase.&rdquo;
+          </p>
+
+          {/* Simple summary table of entered features */}
+          <div className="text-xs text-gray-700 pt-1">
+            <p className="font-semibold text-gray-800 mb-1">Captured Form Inputs:</p>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 bg-white p-2.5 rounded border border-gray-200">
+              <div>Age: <strong>{formData.age}</strong></div>
+              <div>Gender: <strong>{formData.gender}</strong></div>
+              <div>BMI: <strong>{formData.bmi}</strong></div>
+              <div>BP: <strong>{formData.bloodPressure}</strong></div>
+              <div>Smoking: <strong>{formData.smokingHabit}</strong></div>
+              <div>Alcohol: <strong>{formData.alcoholConsumption}</strong></div>
+              <div>Activity: <strong>{formData.physicalActivity}</strong></div>
+              <div>Sugar: <strong>{formData.bloodSugarLevel || 'N/A'}</strong></div>
+            </div>
+            {formData.familyMedicalHistory.length > 0 && (
+              <p className="mt-1.5 text-gray-600">
+                Family History: <strong>{formData.familyMedicalHistory.join(', ')}</strong>
               </p>
-            </div>
-
-            {/* Summary of Entered Parameters */}
-            <div className="border border-gray-200 rounded p-3 mb-4 bg-gray-50 text-xs text-gray-700">
-              <p className="font-bold text-gray-800 mb-2 border-b border-gray-200 pb-1">
-                Captured Input Feature Vector (Ready for Model Input):
-              </p>
-              <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
-                <div><span className="text-gray-500">Age:</span> <strong className="text-gray-900">{formData.age} yrs</strong></div>
-                <div><span className="text-gray-500">Gender:</span> <strong className="text-gray-900">{formData.gender || 'Not specified'}</strong></div>
-                <div><span className="text-gray-500">BMI:</span> <strong className="text-gray-900">{formData.bmi}</strong></div>
-                <div><span className="text-gray-500">BP:</span> <strong className="text-gray-900">{formData.bloodPressure || 'N/A'}</strong></div>
-                <div><span className="text-gray-500">Smoking:</span> <strong className="text-gray-900">{formData.smokingHabit || 'N/A'}</strong></div>
-                <div><span className="text-gray-500">Alcohol:</span> <strong className="text-gray-900">{formData.alcoholConsumption || 'N/A'}</strong></div>
-                <div><span className="text-gray-500">Physical Activity:</span> <strong className="text-gray-900">{formData.physicalActivity || 'N/A'}</strong></div>
-                <div><span className="text-gray-500">Blood Sugar:</span> <strong className="text-gray-900">{formData.bloodSugarLevel || 'Not specified'}</strong></div>
-              </div>
-              <div className="mt-2 pt-1 border-t border-gray-200">
-                <span className="text-gray-500">Family History:</span>{' '}
-                <strong className="text-gray-900">
-                  {formData.familyMedicalHistory.length > 0
-                    ? formData.familyMedicalHistory.join(', ')
-                    : 'None selected'}
-                </strong>
-              </div>
-            </div>
-
-            {/* Note & Close button */}
-            <div className="flex items-center justify-between gap-3 pt-2">
-              <span className="text-[11px] text-gray-500">
-                Phase-2 will integrate Flask + Scikit-Learn.
-              </span>
-              <button
-                type="button"
-                id="btn-close-modal"
-                onClick={() => setShowResultModal(false)}
-                className="bg-gray-800 hover:bg-gray-900 text-white text-xs font-semibold px-4 py-2 rounded transition-colors cursor-pointer"
-              >
-                Okay, Understood
-              </button>
-            </div>
+            )}
           </div>
         </div>
       )}
