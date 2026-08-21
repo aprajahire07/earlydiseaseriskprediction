@@ -5,49 +5,57 @@ interface NavbarProps {
   setActiveTab: (tab: string) => void;
 }
 
-// Simple navigation bar component for the student project
 export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
-  const navTabs = [
-    { id: 'home', label: 'Home' },
-    { id: 'form', label: 'Risk Prediction Form' },
-    { id: 'about', label: 'About Project' },
-    { id: 'future', label: 'Future Scope' },
-  ];
-
   return (
-    <nav className="bg-[#2563eb] text-white border-b border-blue-700 shadow-xs">
-      <div className="max-w-5xl mx-auto px-4 py-3 flex flex-col sm:flex-row items-center justify-between gap-3">
-        {/* Project Header */}
+    <header className="bg-[#3b82f6] text-white border-b border-gray-300">
+      <div className="max-w-4xl mx-auto px-4 py-3 flex flex-col sm:flex-row items-center justify-between gap-3">
+        {/* Website Title */}
         <div 
           onClick={() => setActiveTab('home')}
-          className="cursor-pointer text-center sm:text-left"
+          className="cursor-pointer font-bold text-lg text-center sm:text-left"
         >
-          <h1 className="text-lg font-bold tracking-tight">
-            Early Disease Risk Prediction
-          </h1>
-          <p className="text-xs text-blue-100">
-            B.Tech College Mini Project &bull; Lifestyle & Medical History
-          </p>
+          Early Disease Risk Prediction
         </div>
 
-        {/* Simple Navigation Links */}
-        <div className="flex flex-wrap justify-center gap-1 sm:gap-2">
-          {navTabs.map((tab) => (
-            <button
-              key={tab.id}
-              id={`nav-link-${tab.id}`}
-              onClick={() => setActiveTab(tab.id)}
-              className={`px-3 py-1.5 rounded text-xs sm:text-sm font-medium transition-colors ${
-                activeTab === tab.id
-                  ? 'bg-white text-blue-700 font-semibold'
-                  : 'text-white hover:bg-blue-600'
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
+        {/* Navigation Links */}
+        <nav className="flex gap-2 text-sm">
+          <button
+            id="nav-home"
+            onClick={() => setActiveTab('home')}
+            className={`px-3 py-1 border border-white cursor-pointer ${
+              activeTab === 'home'
+                ? 'bg-white text-[#3b82f6] font-bold'
+                : 'bg-transparent text-white hover:bg-blue-600'
+            }`}
+          >
+            Home
+          </button>
+          
+          <button
+            id="nav-about"
+            onClick={() => setActiveTab('about')}
+            className={`px-3 py-1 border border-white cursor-pointer ${
+              activeTab === 'about'
+                ? 'bg-white text-[#3b82f6] font-bold'
+                : 'bg-transparent text-white hover:bg-blue-600'
+            }`}
+          >
+            About Project
+          </button>
+
+          <button
+            id="nav-form"
+            onClick={() => setActiveTab('form')}
+            className={`px-3 py-1 border border-white cursor-pointer ${
+              activeTab === 'form'
+                ? 'bg-white text-[#3b82f6] font-bold'
+                : 'bg-transparent text-white hover:bg-blue-600'
+            }`}
+          >
+            Risk Prediction Form
+          </button>
+        </nav>
       </div>
-    </nav>
+    </header>
   );
 };

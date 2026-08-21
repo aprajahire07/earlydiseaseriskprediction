@@ -1,84 +1,48 @@
 import React from 'react';
 
 interface HomeSectionProps {
-  onCheckRiskClick: () => void;
-  onAboutClick: () => void;
+  onCheckRisk: () => void;
 }
 
-// 1. Home Page Component
-export const HomeSection: React.FC<HomeSectionProps> = ({
-  onCheckRiskClick,
-  onAboutClick,
-}) => {
+export const HomeSection: React.FC<HomeSectionProps> = ({ onCheckRisk }) => {
   return (
     <div className="space-y-6">
-      {/* Main Project Banner Box */}
-      <div className="bg-white border border-gray-300 rounded p-6 sm:p-8 text-center">
-        {/* Project Title */}
-        <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">
+      {/* Main Home Box */}
+      <div className="border border-gray-300 p-6 bg-white text-center">
+        <h1 className="text-xl sm:text-2xl font-bold text-[#3b82f6] mb-3">
           Early Disease Risk Prediction using Lifestyle and Medical History
-        </h2>
+        </h1>
 
-        {/* Short Introduction */}
-        <p className="text-base sm:text-lg text-gray-700 max-w-2xl mx-auto mb-6 leading-relaxed">
+        <p className="text-base text-gray-700 max-w-2xl mx-auto mb-5 leading-relaxed">
           This project is designed to study disease risk using lifestyle and medical history information.
         </p>
 
-        {/* Simple Action Buttons */}
-        <div className="flex flex-wrap justify-center items-center gap-3 mb-6">
+        {/* Check Risk Button */}
+        <div className="mb-5">
           <button
             type="button"
             id="btn-check-risk"
-            onClick={onCheckRiskClick}
-            className="bg-[#2563eb] hover:bg-[#1d4ed8] text-white font-medium px-6 py-2.5 rounded text-sm sm:text-base border border-blue-700 cursor-pointer"
+            onClick={onCheckRisk}
+            className="bg-[#3b82f6] hover:bg-blue-600 text-white font-bold px-6 py-2 border border-blue-700 cursor-pointer text-sm sm:text-base"
           >
             Check Risk
           </button>
-
-          <button
-            type="button"
-            id="btn-read-about"
-            onClick={onAboutClick}
-            className="bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium px-5 py-2.5 rounded text-sm sm:text-base border border-gray-300 cursor-pointer"
-          >
-            About Project
-          </button>
         </div>
 
-        {/* Required Student Educational Note */}
-        <div className="bg-yellow-50 border border-yellow-300 text-yellow-800 text-xs sm:text-sm p-3 rounded max-w-lg mx-auto">
-          <strong>Note:</strong> This is a student project for educational purposes.
+        {/* Note */}
+        <div className="text-xs font-bold text-gray-800 max-w-md mx-auto pt-2">
+          Note: This is a student project for educational purposes.
         </div>
       </div>
 
-      {/* Simple Information Cards for College Demo */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-left">
-        <div className="bg-white border border-gray-300 p-4 rounded">
-          <h3 className="font-bold text-gray-900 text-sm mb-1.5 border-b border-gray-200 pb-1">
-            Lifestyle Assessment
-          </h3>
-          <p className="text-xs text-gray-600 leading-relaxed">
-            Considers daily parameters such as BMI, smoking habits, alcohol consumption, and physical activity routine.
-          </p>
-        </div>
-
-        <div className="bg-white border border-gray-300 p-4 rounded">
-          <h3 className="font-bold text-gray-900 text-sm mb-1.5 border-b border-gray-200 pb-1">
-            Medical History
-          </h3>
-          <p className="text-xs text-gray-600 leading-relaxed">
-            Takes into account resting blood pressure levels, blood sugar indicators, and family hereditary disease history.
-          </p>
-        </div>
-
-        <div className="bg-white border border-gray-300 p-4 rounded">
-          <h3 className="font-bold text-gray-900 text-sm mb-1.5 border-b border-gray-200 pb-1">
-            Prototype Status
-          </h3>
-          <p className="text-xs text-gray-600 leading-relaxed">
-            Currently in Phase-1 frontend demonstration. Machine Learning prediction logic will be connected in Phase-2.
-          </p>
-        </div>
+      {/* Brief Overview Section */}
+      <div className="border border-gray-300 p-4 bg-white">
+        <h2 className="text-base font-bold text-gray-800 mb-2 border-b border-gray-200 pb-1">
+          Project Summary
+        </h2>
+        <p className="text-sm text-gray-700 leading-relaxed">
+          This is a college mini-project frontend interface designed to collect user lifestyle factors (such as BMI, physical activity, smoking, and alcohol intake) and medical history indicators (such as blood pressure and family history) for early health risk evaluation.
+        </p>
       </div>
     </div>
   );
