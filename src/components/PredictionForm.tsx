@@ -16,6 +16,8 @@ interface PredictionResult {
   message?: string;
 }
 
+const API_ENDPOINT = 'https://disease-risk-api-e5o7.onrender.com/predict';
+
 export const PredictionForm: React.FC = () => {
   // Form input states
   const [age, setAge] = useState<string>('');
@@ -27,10 +29,6 @@ export const PredictionForm: React.FC = () => {
   const [physicalActivity, setPhysicalActivity] = useState<string>('');
   const [familyMedicalHistory, setFamilyMedicalHistory] = useState<string[]>([]);
   const [bloodSugarLevel, setBloodSugarLevel] = useState<string>('');
-
-  // Backend API URL (Default: Live FastAPI ngrok public server)
-  const [apiUrl, setApiUrl] = useState<string>('https://apply-fragile-thaw.ngrok-free.dev/predict');
-  const [showApiSettings, setShowApiSettings] = useState<boolean>(false);
 
   // Request & Response states
   const [loading, setLoading] = useState<boolean>(false);
@@ -47,7 +45,7 @@ export const PredictionForm: React.FC = () => {
     }
   };
 
-  // Helper to load sample student testing data
+  // Helper to load sample testing data
   const handleLoadSample = () => {
     setAge('45');
     setGender('Male');
@@ -100,12 +98,11 @@ export const PredictionForm: React.FC = () => {
     setLoading(true);
 
     try {
-      const response = await fetch(apiUrl.trim(), {
+      const response = await fetch(API_ENDPOINT, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Accept: 'application/json',
-          'ngrok-skip-browser-warning': 'true',
         },
         body: JSON.stringify(payload),
       });
@@ -117,9 +114,9 @@ export const PredictionForm: React.FC = () => {
       const data: PredictionResult = await response.json();
       setResult(data);
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'Unable to connect to FastAPI backend';
+      const errorMessage = err instanceof Error ? err.message : 'Unable to connect to backend server';
       setApiError(
-        `${errorMessage}. Please ensure your FastAPI server is running at ${apiUrl} and CORS is enabled.`
+        `${errorMessage}. (Note: If the Render server was idle, it may take 30-50 seconds to spin up on first request. Please try again.)`
       );
     } finally {
       setLoading(false);
@@ -188,63 +185,26 @@ export const PredictionForm: React.FC = () => {
 
   return (
     <div className="border border-gray-300 p-5 sm:p-6 bg-white space-y-5">
-      {/* Header */}
-      <div className="border-b border-gray-200 pb-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+      {/* Clean Header */}
+      <div className="border-b border-gray-200 pb-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <div>
           <h2 className="text-lg font-bold text-[#3b82f6]">
             Risk Prediction Form
           </h2>
           <p className="text-xs text-gray-600">
-            Enter lifestyle and medical parameters to send a POST request to FastAPI backend (<code className="bg-gray-100 px-1 py-0.5 rounded text-gray-800 font-mono text-[11px]">{apiUrl}</code>).
+            Enter your lifestyle and health parameters to calculate disease risk factors.
           </p>
         </div>
 
-        <div className="flex gap-2 text-xs">
-          <button
-            type="button"
-            onClick={handleLoadSample}
-            className="border border-gray-300 bg-gray-50 hover:bg-gray-100 text-gray-700 px-2.5 py-1 cursor-pointer font-medium"
-            title="Load sample values for testing"
-          >
-            Load Sample Data
-          </button>
-          <button
-            type="button"
-            onClick={() => setShowApiSettings(!showApiSettings)}
-            className="border border-gray-300 bg-gray-50 hover:bg-gray-100 text-gray-700 px-2.5 py-1 cursor-pointer font-medium"
-          >
-            {showApiSettings ? 'Hide Endpoint' : 'API Endpoint'}
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={handleLoadSample}
+          className="self-start sm:self-auto border border-gray-300 bg-gray-50 hover:bg-gray-100 text-gray-700 px-3 py-1 text-xs cursor-pointer font-medium"
+          title="Load sample values for testing"
+        >
+          Load Sample Data
+        </button>
       </div>
-
-      {/* Optional API Endpoint Config */}
-      {showApiSettings && (
-        <div className="border border-blue-200 bg-blue-50 p-3 text-xs space-y-1.5">
-          <label className="block font-bold text-gray-700">
-            FastAPI Backend Endpoint URL:
-          </label>
-          <div className="flex gap-2">
-            <input
-              type="text"
-              value={apiUrl}
-              onChange={(e) => setApiUrl(e.target.value)}
-              placeholder="https://apply-fragile-thaw.ngrok-free.dev/predict"
-              className="flex-1 border border-gray-300 bg-white p-1.5 font-mono text-xs"
-            />
-            <button
-              type="button"
-              onClick={() => setApiUrl('https://apply-fragile-thaw.ngrok-free.dev/predict')}
-              className="border border-gray-300 bg-white hover:bg-gray-100 px-2 py-1 text-gray-700 cursor-pointer"
-            >
-              Reset to Default URL
-            </button>
-          </div>
-          <p className="text-[11px] text-gray-600">
-            Ensure your FastAPI backend has CORS enabled: <code className="bg-white px-1 py-0.5 border border-gray-200 font-mono">CORSMiddleware(allow_origins=["*"])</code>
-          </p>
-        </div>
-      )}
 
       {/* Validation Message */}
       {validationError && (
@@ -461,38 +421,15 @@ export const PredictionForm: React.FC = () => {
       {loading && (
         <div className="border border-blue-200 bg-blue-50 p-3 text-xs text-blue-800 flex items-center gap-2">
           <span className="inline-block w-3.5 h-3.5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></span>
-          <span>Sending request to FastAPI backend (<code className="font-mono">{apiUrl}</code>)...</span>
+          <span>Analyzing health parameters and calculating risk score...</span>
         </div>
       )}
 
       {/* Error Message Box */}
       {apiError && !loading && (
         <div className="border border-red-300 bg-red-50 p-4 text-sm text-red-900 space-y-2">
-          <p className="font-bold text-red-800">Connection Error:</p>
+          <p className="font-bold text-red-800">Connection Notice:</p>
           <p className="text-xs text-red-700 leading-relaxed">{apiError}</p>
-          
-          <div className="border-t border-red-200 pt-2 text-xs text-gray-700">
-            <p className="font-semibold mb-1">FastAPI Troubleshooting Tips for Mini Project:</p>
-            <ul className="list-disc list-inside space-y-0.5 text-[11px] text-gray-600">
-              <li>Start your backend in terminal: <code className="bg-white px-1 py-0.5 border border-gray-300 font-mono">uvicorn main:app --reload --port 8000</code></li>
-              <li>Ensure CORS middleware is enabled in FastAPI:
-                <pre className="bg-white p-2 mt-1 border border-gray-300 font-mono text-[10px] overflow-x-auto">
-{`from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-
-app = FastAPI()
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)`}
-                </pre>
-              </li>
-            </ul>
-          </div>
         </div>
       )}
 
